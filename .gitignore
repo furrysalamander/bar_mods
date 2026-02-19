@@ -1,0 +1,14 @@
+# BAR Mods Workspace
+*.b64
+output/
+__pycache__/
+*.pyc
+*.swp
+*.swo
+*.bak
+.DS_Store
+# Ignore BAR repo contents, but not the submodule itself
+!Beyond-All-Reason
+Beyond-All-Reason/*
+!Beyond-All-Reason/.gitmodules
+!Beyond-All-Reason/.git
