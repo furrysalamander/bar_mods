@@ -1,0 +1,8 @@
+{
+    "all_my_mods": {
+        "behemoth_launcher.lua": "Test",
+        "epic_artillery.lua": "Test",
+        "epic_radars.lua": "Test",
+        "nuke_tick.lua": "Test"
+    }
+}

@@ -26,9 +26,18 @@ if UnitDefs[parent_id] and not UnitDefs[new_id] then
 	u.customparams.i18n_en_tooltip = "Ultra-fast tactical nuke launcher. Fires automatically."
 	u.customparams.unitgroup = "weapon"
 
+	u.activatewhenbuilt = true
+	u.onoffable = false
+	u.radardistance = 2200
+
 	local nuke_def = deepcopy(UnitDefs["cortron"].weapondefs.cortron_weapon)
 	nuke_def.commandfire = nil
 	nuke_def.range = 1200
+	nuke_def.energypershot = 1
+	nuke_def.metalpershot = 1
+	nuke_def.reloadtime = 0.1
+	nuke_def.stockpiletime = 1
+	nuke_def.targetable = 1
 
 	u.weapondefs = {
 		nuke_tick = nuke_def,
@@ -40,12 +49,67 @@ if UnitDefs[parent_id] and not UnitDefs[new_id] then
 			onlytargetcategory = "NOTSUB",
 		},
 	}
+    
+    if MOD_ADDED_UNITS then
+        table.insert(MOD_ADDED_UNITS, new_id)
+    end
 
 	for _, ud in pairs(UnitDefs) do
 		if ud.buildoptions then
 			for _, opt in ipairs(ud.buildoptions) do
 				if opt == parent_id then
 					table.insert(ud.buildoptions, new_id)
+					break
+				end
+			end
+		end
+	end
+end
+
+-- Anti-Nuke Tick: intercepts nuke tick projectiles
+local antinuke_parent_id = "armflea"
+local antinuke_new_id = "armfleaantinuke"
+
+if UnitDefs[antinuke_parent_id] and UnitDefs["armamd"] and not UnitDefs[antinuke_new_id] then
+	UnitDefs[antinuke_new_id] = deepcopy(UnitDefs[antinuke_parent_id])
+	local u = UnitDefs[antinuke_new_id]
+
+	u.name = antinuke_new_id
+	u.customparams = u.customparams or {}
+	u.customparams.i18n_en_humanname = "Tick (Anti-Nuke)"
+	u.customparams.i18n_en_tooltip = "Ultra-fast anti-nuke interceptor. Auto-stockpiles and shoots down nukes."
+	u.customparams.unitgroup = "antinuke"
+
+	u.activatewhenbuilt = true
+	u.onoffable = false
+	u.radardistance = 2200
+
+	local antinuke_def = deepcopy(UnitDefs["armamd"].weapondefs.amd_rocket)
+	antinuke_def.stockpiletime = 1
+	antinuke_def.energypershot = 1
+	antinuke_def.metalpershot = 1
+	antinuke_def.coverage = 1500
+	antinuke_def.weaponvelocity = 8000
+
+	u.weapondefs = {
+		antinuke_tick = antinuke_def,
+	}
+
+	u.weapons = {
+		[1] = {
+			def = "ANTINUKE_TICK",
+		},
+	}
+    
+    if MOD_ADDED_UNITS then
+        table.insert(MOD_ADDED_UNITS, antinuke_new_id)
+    end
+
+	for _, ud in pairs(UnitDefs) do
+		if ud.buildoptions then
+			for _, opt in ipairs(ud.buildoptions) do
+				if opt == antinuke_parent_id then
+					table.insert(ud.buildoptions, antinuke_new_id)
 					break
 				end
 			end

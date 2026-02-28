@@ -36,6 +36,12 @@ end
 -- Example: Creating a "Super Bot" based on the standard Pawn (armpw)
 UnitDefs["super_bot"] = deepcopy(UnitDefs["armpw"])
 local u = UnitDefs["super_bot"]
+
+-- MODDING REQUIREMENT: Register the new unit for the Modpack Manager
+-- This enables the manager to dynamically inject "test" behaviors later.
+if MOD_ADDED_UNITS then
+    table.insert(MOD_ADDED_UNITS, "super_bot")
+end
 ```
 
 ---
@@ -106,7 +112,23 @@ u.weapons = {
 
 ## 5. Procedural Logic & Compatibility
 
-### 5.1 Dynamic Builder Injection
+### 5.1 The Modpack Manager & Test Injection (REQUIRED)
+To ensure compatibility with the automated Modpack Manager, **every new unit** must be registered in the `MOD_ADDED_UNITS` table if it exists.
+
+```lua
+if MOD_ADDED_UNITS then
+    table.insert(MOD_ADDED_UNITS, "super_bot")
+end
+```
+
+When building a mod in "Test Mode", the Manager will parse this registration and dynamically append Lua code to:
+1. Reduce the unit's metal/energy cost to 1.
+2. Reduce the unit's build time to 1.
+3. Automatically inject the unit into the Arm and Core Commanders (`armcom`, `corcom`) build options.
+
+Failure to register your units means they won't automatically benefit from the test injection workflow!
+
+### 5.2 Dynamic Builder Injection
 Instead of manually adding your unit to every factory, use a loop. This ensures your mod works even if other mods change building lists.
 
 ```lua
