@@ -3,6 +3,7 @@
         "behemoth_launcher.lua": "Test",
         "epic_artillery.lua": "Test",
         "epic_radars.lua": "Test",
-        "nuke_tick.lua": "Test"
-    }
+        "nuke_tick.lua": "Normal"
+    },
+    "__last__": "all_my_mods"
 }
