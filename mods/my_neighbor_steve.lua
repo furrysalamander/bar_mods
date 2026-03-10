@@ -1,4 +1,3 @@
-
 local function deepcopy(orig)
     local orig_type = type(orig)
     local copy
@@ -14,33 +13,35 @@ local function deepcopy(orig)
     return copy
 end
 
-local parent_id = "armmav"
-local new_id = "unstoppable_slinger"
+local parent_id = "armspy"
+local new_id = "my_neighbor_steve"
 
 if UnitDefs[parent_id] and not UnitDefs[new_id] then
     UnitDefs[new_id] = deepcopy(UnitDefs[parent_id])
     local u = UnitDefs[new_id]
 
-    -- Epic survivability
+    -- Super survivability (copied from unstoppable_slinger)
     u.health = 999999
     u.autoheal = 10000
     u.maxacc = 1.0
     u.maxdec = 2.0
-    u.speed = 200
     u.turnrate = 3000
 
-    -- Minimal damage
-    if u.weapondefs and u.weapondefs.armmav_weapon then
-        u.weapondefs.armmav_weapon.damage.default = 1
-        u.weapondefs.armmav_weapon.damage.vtol = 1
-    end
+    -- Even faster than unstoppable_slinger
+    u.speed = 300
+
+    -- Cheap to make and cloak
+    u.metalcost = 10
+    u.energycost = 10
+    u.cloakcost = 1
+    u.cloakcostmoving = 2
 
     -- Customparams for UI
     u.customparams = u.customparams or {}
-    u.customparams.i18n_en_humanname = "Unstoppable Slinger"
-    u.customparams.i18n_en_tooltip = "Epic tank bot: nearly indestructible, but does almost no damage."
+    u.customparams.i18n_en_humanname = "My Neighbor Steve"
+    u.customparams.i18n_en_tooltip = "Super-fast, super cheap, and super creepy"
 
-    -- Dynamic builder injection: add to all armada builders that build armmav
+    -- Dynamic builder injection: add to all armada builders that build armspy
     for name, ud in pairs(UnitDefs) do
         if ud.buildoptions then
             for _, opt in ipairs(ud.buildoptions) do
