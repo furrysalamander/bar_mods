@@ -1,3 +1,4 @@
+-- Fast Carrier: tried to make one that drop unlimited behemoths but it seems like the game doesn't like that.
 
 local function deepcopy(orig)
     local orig_type = type(orig)
@@ -14,33 +15,33 @@ local function deepcopy(orig)
     return copy
 end
 
-local parent_id = "armmav"
-local new_id = "unstoppable_slinger"
+local parent_id = "armatlas"
+local new_id = "behemoth_carrier"
+local behemoth_id = "corjugg"
 
-if UnitDefs[parent_id] and not UnitDefs[new_id] then
+if UnitDefs[parent_id] and UnitDefs[behemoth_id] and not UnitDefs[new_id] then
     UnitDefs[new_id] = deepcopy(UnitDefs[parent_id])
     local u = UnitDefs[new_id]
 
-    -- Epic survivability
+    -- Extreme defense, health, regen, speed
     u.health = 999999
     u.autoheal = 10000
-    u.maxacc = 1.0
-    u.maxdec = 2.0
-    u.speed = 200
+    u.maxacc = 2.0
+    u.maxdec = 4.0
+    u.speed = 1000
     u.turnrate = 3000
 
-    -- Minimal damage
-    if u.weapondefs and u.weapondefs.armmav_weapon then
-        u.weapondefs.armmav_weapon.damage.default = 1
-        u.weapondefs.armmav_weapon.damage.vtol = 1
-    end
-
-    -- Customparams for UI
+    -- Always carries a behemoth, unlimited unloads
+    u.transportcapacity = 1
+    u.transportsize = 7
+    u.transportmass = 20000
+    u.transportunloadmethod = 0
     u.customparams = u.customparams or {}
-    u.customparams.i18n_en_humanname = "Unstoppable Slinger"
-    u.customparams.i18n_en_tooltip = "Epic tank bot: nearly indestructible, but does almost no damage."
+    u.customparams.i18n_en_humanname = "Fast Carrier"
+    u.customparams.i18n_en_tooltip = "Super-fast, invincible plane that always carries and unloads unlimited Behemoths."
+    u.customparams.behemoth_autoload = behemoth_id
 
-    -- Dynamic builder injection: add to all armada builders that build armmav
+    -- Dynamic builder injection: add to all armada builders that build armatlas
     for name, ud in pairs(UnitDefs) do
         if ud.buildoptions then
             for _, opt in ipairs(ud.buildoptions) do
