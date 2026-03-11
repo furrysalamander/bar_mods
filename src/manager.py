@@ -5,8 +5,8 @@ from builder import build_modpack
 import streamlit.components.v1 as components
 
 # Set absolute path for directory
-MODS_DIR = "/home/mike/source/bar_mods/mods"
-COLLECTIONS_FILE = "/home/mike/source/bar_mods/collections.json"
+MODS_DIR = "./mods"
+COLLECTIONS_FILE = "./collections.json"
 
 st.set_page_config(page_title="BAR Modpack Manager", layout="wide")
 

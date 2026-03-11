@@ -2,8 +2,8 @@ import re
 import os
 import subprocess
 
-MODS_DIR = "/home/mike/source/bar_mods/mods"
-OUTPUT_DIR = "/home/mike/source/bar_mods/output"
+MODS_DIR = "./mods"
+OUTPUT_DIR = "./output"
 
 test_injection_logic = """
     -- Test Mode Injection
