@@ -36,10 +36,26 @@ if UnitDefs[parent_id] and not UnitDefs[new_id] then
     u.cloakcost = 1
     u.cloakcostmoving = 2
 
+    -- always use the EMP-style explosion, not the small generic one
+    u.explodeas = "SPYBOMBX"
+    u.selfdestructas = "SPYBOMBX"
+
     -- Customparams for UI
     u.customparams = u.customparams or {}
     u.customparams.i18n_en_humanname = "My Neighbor Steve"
-    u.customparams.i18n_en_tooltip = "Super-fast, super cheap, and super creepy"
+    u.customparams.i18n_en_tooltip = "Super-fast, super cheap, super creepy – and when he blows up he lets out a massive EMP pulse!"
+
+    -- Make the spy-bomb weapon much larger and longer‑lasting so only this mod deploys it
+    -- (patches the global definition; affects all spies but is triggered when our unit exists)
+    if WeaponDefs and WeaponDefs.spybombx then
+        -- increase area and stun duration
+        WeaponDefs.spybombx.areaofeffect = 20000
+        WeaponDefs.spybombx.paralyzetime = 60
+        -- make sure the custom exception stays in line with the new duration
+        WeaponDefs.spybombx.customparams = WeaponDefs.spybombx.customparams or {}
+        WeaponDefs.spybombx.customparams.paralyzetime_exception = "isBuilding=false:30,customparams.unitgroup=antinuke:40"
+        Spring.Echo("[my_neighbor_steve] upgraded spybombx aoe and paralyzetime")
+    end
 
     -- Dynamic builder injection: add to all armada builders that build armspy
     for name, ud in pairs(UnitDefs) do
