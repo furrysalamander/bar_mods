@@ -4,14 +4,87 @@ This manual serves as the definitive reference for creating and modifying game c
 
 ---
 
+## 0. Modify vs. Create — Choose the Right Pattern
+
+Before writing any code, decide whether you need to **modify an existing unit** or **create a brand-new unit**. Using the wrong pattern is the most common mistake.
+
+### 0.1 Modifying an Existing Unit (tweakdefs — in-place edit)
+Use this when the user wants to **change stats, weapons, or behaviour** of a unit that already exists in the game. Examples: "increase the commander's d-gun range", "make Pawns faster", "double all unit HP".
+
+**Pattern — iterate `UnitDefs` and edit in-place:**
+```lua
+-- Example: Make the commander d-gun reach across the map
+for name, ud in pairs(UnitDefs) do
+    if (name == "armcom" or name == "corcom") and ud.weapondefs then
+        if ud.weapondefs.disintegrator then
+            ud.weapondefs.disintegrator.range = 5000
+        end
+    end
+end
+```
+
+Key rules for in-place modifications:
+- **No `deepcopy`** — you are editing the original unit, not creating a copy.
+- **No `MOD_ADDED_UNITS`** — you are not adding a new unit.
+- **No builder injection** — the unit already exists in build menus.
+- **No `u.name` or `customparams` identity** — the unit keeps its original identity.
+- You *can* modify `weapondefs`, `weapons`, `speed`, `health`, `metalcost`, or any other stat.
+
+### 0.2 Modifying Every Unit (tweakdefs — global sweep)
+Use this for broad balance changes that affect all (or a category of) units. Example: "double all unit health", "make all aircraft fly higher".
+
+```lua
+for name, ud in pairs(UnitDefs) do
+    if ud.health then
+        ud.health = ud.health * 2
+    end
+end
+```
+
+### 0.3 Creating a Brand-New Unit (tweakdefs — clone)
+Use this **only** when the user wants a unit that does not exist in the game. Examples: "create a mega tank", "make a stealth bomber variant". This requires cloning, registration, and builder injection — see Section 1.2 below.
+
+### 0.4 Quick Stat Patch (tweakunits — simple table merge)
+For the simplest possible edits to a single unit, you can use the `tweakunits` system instead of `tweakdefs`. This is a pure data merge — no Lua execution.
+
+```lua
+-- tweakunits format: a Lua table returned to the engine
+{
+    armpw = { metalcost = 10, health = 9999 },
+    corcom = { speed = 100 },
+}
+```
+
+Base64-encode this table (URL-safe, strip trailing `=`) and apply with `!bset tweakunits <base64>`.
+
+**Limitations of tweakunits:**
+- Cannot create new units or iterate over `UnitDefs`.
+- Cannot modify nested tables like `weapondefs` (only top-level keys).
+- Cannot contain logic (loops, conditionals, functions).
+- For anything beyond simple stat patches, use `tweakdefs`.
+
+### 0.5 Decision Flowchart
+```
+Is the request about an existing unit?
+├── YES: Does it need weapon/nested changes or logic?
+│   ├── YES → tweakdefs in-place edit (Section 0.1)
+│   └── NO (simple stat change) → tweakunits (Section 0.4) or tweakdefs
+└── NO: Creating a new unit
+    └── tweakdefs clone pattern (Section 1.2)
+```
+
+---
+
 ## 1. Technical Foundations
 
 ### 1.1 The Modding Environment
 BAR uses a "Tweak" system that allows you to modify the game's unit and weapon definitions at runtime without altering the base game files.
-*   **`tweakunits`**: A simple table-merging system. Best used for quick stat patches (e.g., doubling the HP of a specific unit).
-*   **`tweakdefs`**: A full Lua execution environment. This is the "Gold Standard" for modding because it allows you to use logic, loops, and conditional cloning to create entirely new units.
+*   **`tweakunits`**: A simple table-merging system. Best used for quick stat patches (e.g., doubling the HP of a specific unit). See Section 0.4.
+*   **`tweakdefs`**: A full Lua execution environment. This is the "Gold Standard" for modding because it allows you to use logic, loops, and conditional cloning to create entirely new units or modify existing ones in-place.
 
 ### 1.2 The Principle of Inheritance (Cloning)
+**This section applies ONLY when creating a brand-new unit.** If you are modifying an existing unit, see Section 0.1 instead.
+
 The BAR engine requires hundreds of parameters for a unit to function. If you miss one, the game may crash or the unit may be invisible.
 **Best Practice**: Never start a unit from a blank table. Always clone an existing unit that is physically similar to what you want to build.
 
@@ -149,7 +222,7 @@ end
 injectUnit("armpw", "super_bot")
 ```
 
-### 5.2 Global Balance Tweaks (`UnitDef_Post`)
+### 5.3 Global Balance Tweaks (`UnitDef_Post`)
 If you want to apply a change to *every single unit* in the game (e.g., doubling all health), hijack the `UnitDef_Post` function.
 
 ```lua
@@ -166,9 +239,49 @@ end
 
 ## 6. Workflow Checklist
 
-1.  **Draft the Lua**: Define your unit using `deepcopy` of a parent.
-2.  **Define Stats**: Set identity, movement, and combat parameters.
-3.  **Inject**: Add the unit to build menus procedurally.
-4.  **Encode**: Run the `encode_mod.py` script to generate a Base64 string.
-5.  **Deploy**: In a lobby, use `!boss` and `!bset tweakdefs <BASE64_STRING>`.
-6.  **Debug**: If the unit doesn't appear, check `infolog.txt` for Lua syntax errors.
+### For modifying existing units:
+1.  **Decide the pattern**: Use Section 0 to decide between tweakunits and tweakdefs.
+2.  **Write the Lua**: Iterate `UnitDefs` and edit stats in-place. No `deepcopy`, no registration.
+3.  **Encode**: Run `python3 encode_mod.py` to generate a Base64 string.
+4.  **Deploy**: In a lobby, use `!boss` and `!bset tweakdefs <BASE64_STRING>`.
+5.  **Debug**: If changes don't apply, check `infolog.txt` for Lua syntax errors.
+
+### For creating new units:
+1.  **Draft the Lua**: Clone a parent unit using `deepcopy`.
+2.  **Define Stats**: Set identity (`u.name`, `customparams`), movement, and combat parameters.
+3.  **Register**: Add to `MOD_ADDED_UNITS` for test-mode compatibility.
+4.  **Inject**: Add the unit to build menus procedurally.
+5.  **Encode**: Run `python3 encode_mod.py` to generate a Base64 string.
+6.  **Deploy**: In a lobby, use `!boss` and `!bset tweakdefs <BASE64_STRING>`.
+7.  **Debug**: If the unit doesn't appear, check `infolog.txt` for Lua syntax errors.
+
+---
+
+## 7. Important: Tweakdefs File Format
+
+Tweakdefs scripts are executed as **function bodies** inside the engine. Key rules:
+
+1.  **Do NOT use `return`** at the end of a tweakdefs script. The engine does not expect a return value. Modify `UnitDefs` directly.
+2.  **The Modpack Manager wraps each mod in `do...end` blocks.** This means `local` variables are properly scoped, but `return` statements will be silently swallowed.
+3.  **`UnitDefs` is a global** — you read from it and write to it directly. No need to capture or return it.
+
+Correct tweakdefs format:
+```lua
+-- Modify existing units in-place:
+for name, ud in pairs(UnitDefs) do
+    if ud.health then ud.health = ud.health * 2 end
+end
+
+-- Or create new units by assigning to UnitDefs:
+UnitDefs["super_bot"] = deepcopy(UnitDefs["armpw"])
+local u = UnitDefs["super_bot"]
+u.speed = 200
+```
+
+Incorrect (do NOT do this in tweakdefs):
+```lua
+-- WRONG: returning a table is for tweakunits, not tweakdefs
+local newUnits = {}
+newUnits.armcom = deepcopy(UnitDefs.armcom)
+return newUnits  -- This will be silently ignored!
+```
