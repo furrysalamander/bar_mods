@@ -1,0 +1,62 @@
+# Metal Storage
+> Increases Metal Storage (3000)
+
+**Faction:** Cortex | **Category:** Buildings | **Tier:** T1
+
+## Stats
+| Stat | Value |
+|------|-------|
+| Metal | 340Metal needed to build this unit |
+| energy | 590Energy needed to build this unit |
+| Build time | 2920Build time needed to build this unit |
+| health | 2100Starting Hitpoints |
+| sight | 273Sight range to spot enemy units |
+
+## Description
+The Metal Storage increases your metal storage capacity by 3000.
+
+It's also useful for storing excess metal for later use, especially since metal production is lower than energy.
+
+## Related Units
+- [armmstor](/unit/armmstor)
+- [corfmkr](/unit/corfmkr)
+- [cormakr](/unit/cormakr)
+- [cordrag](/unit/cordrag)
+- [corfdrag](/unit/corfdrag)
+- [coreyes](/unit/coreyes)
+- [corwin](/unit/corwin)
+- [cormex](/unit/cormex)
+- [corrad](/unit/corrad)
+- [cortide](/unit/cortide)
+- [corjamt](/unit/corjamt)
+- [corfrad](/unit/corfrad)
+- [corsolar](/unit/corsolar)
+- [corestor](/unit/corestor)
+- [coruwes](/unit/coruwes)
+- [cornanotc](/unit/cornanotc)
+- [cornanotcplat](/unit/cornanotcplat)
+- [coruwms](/unit/coruwms)
+- [coradvsol](/unit/coradvsol)
+- [corgeo](/unit/corgeo)
+- [coruwgeo](/unit/coruwgeo)
+- [corjuno](/unit/corjuno)
+- [corfort](/unit/corfort)
+- [corshroud](/unit/corshroud)
+- [corason](/unit/corason)
+- [cormmkr](/unit/cormmkr)
+- [coruwmmm](/unit/coruwmmm)
+- [corarad](/unit/corarad)
+- [cormoho](/unit/cormoho)
+- [coruwmme](/unit/coruwmme)
+- [corsd](/unit/corsd)
+- [coruwadvms](/unit/coruwadvms)
+- [corfatf](/unit/corfatf)
+- [cortarg](/unit/cortarg)
+- [coruwadves](/unit/coruwadves)
+- [corageo](/unit/corageo)
+- [corfmd](/unit/corfmd)
+- [coruwageo](/unit/coruwageo)
+- [corgate](/unit/corgate)
+- [corfus](/unit/corfus)
+- [coruwfus](/unit/coruwfus)
+- [corafus](/unit/corafus)
