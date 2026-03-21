@@ -17,7 +17,7 @@ test_injection_logic = """
             end
         end
         for name, ud in pairs(UnitDefs) do
-            if name == "armcom" or name == "corcom" then
+            if name:find("^armcom") or name:find("^corcom") or name:find("^legcom") then
                 if ud.buildoptions then
                     for _, unit_name in ipairs(MOD_ADDED_UNITS) do
                         local already_added = false

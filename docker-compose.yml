@@ -1,0 +1,93 @@
+services:
+  streamlit:
+    build:
+      context: .
+      dockerfile: docker/streamlit/Dockerfile
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./mods:/app/mods
+      - ./output:/app/output
+      - ./collections.json:/app/collections.json
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  discord-bot:
+    build:
+      context: .
+      dockerfile: docker/discord-bot/Dockerfile
+    env_file: .env
+    environment:
+      - OPENCODE_URL=http://opencode:4096
+    volumes:
+      - ./mods:/app/mods
+      - ./output:/app/output
+      - ./collections.json:/app/collections.json
+      - ./data/units:/app/data/units:ro
+    depends_on:
+      opencode:
+        condition: service_healthy
+        restart: true
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - app-net
+
+  opencode:
+    build:
+      context: docker/opencode
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      - OPENCODE_SERVER_PASSWORD=${OPENCODE_SERVER_PASSWORD}
+      - OPENCODE_SERVER_USERNAME=${OPENCODE_SERVER_USERNAME:-opencode}
+      - LLAMA_API_URL=${LLAMA_API_URL}
+      - LLAMA_MODEL_ID=${LLAMA_MODEL_ID}
+      - LLM_API_KEY=${LLM_API_KEY}
+    volumes:
+      # Read-only reference repository
+      - ./Beyond-All-Reason:/workspace/Beyond-All-Reason:ro
+      # Modding guide (single source of truth)
+      - ./advanced_modding_report.md:/workspace/advanced_modding_report.md:ro
+      # Shared mod directories
+      - ./mods:/workspace/mods
+      # Opencode internal state (sessions, etc.)
+      - opencode-state:/home/opencode/.local/share/opencode
+      - opencode-config:/home/opencode/.config/opencode
+      # Bun/opencode runtime writable directories
+      - opencode-local-state:/home/opencode/.local/state
+      - opencode-cache:/home/opencode/.cache
+      - opencode-bun:/home/opencode/.bun
+    tmpfs:
+      - /tmp:size=64M
+    # Sandbox hardening
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # Allow reaching the host's llama.cpp server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "sh", "/usr/local/bin/healthcheck.sh"]
+      interval: 3s
+      timeout: 3s
+      retries: 3
+      start_period: 1s
+    restart: unless-stopped
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
+
+volumes:
+  opencode-state:
+  opencode-config:
+  opencode-local-state:
+  opencode-cache:
+  opencode-bun:

@@ -117,6 +117,48 @@ if MOD_ADDED_UNITS then
 end
 ```
 
+### 1.3 Guarding Against Missing Parent Units
+**Always check that a parent unit exists before cloning it.** Many units in BAR are conditionally loaded based on game settings and may not be present in `UnitDefs` at runtime.
+
+**Conditionally loaded unit categories:**
+| Category | Condition | Examples |
+|---|---|---|
+| **Legion faction** (`leg*`) | Only when Legion is enabled for the round | `legcom`, `legnavysub`, `legnavyrezsub` |
+| **Experimental units** | Gated behind `modOptions.experimentalextraunits` | `armseadragon`, `cordesolator`, `armexcalibur`, `armmeatball`, `legbunk` |
+| **Scavenger units** (`*_scav`) | Gated behind `modOptions.scavunitsforplayers` | `armapt3_scav`, `corbuzz_scav` |
+| **Raptor units** (`raptor*`) | Only in Raptor game modes | `raptorqueenr1`, `raptorwalkerr1` |
+| **Release candidate units** | Gated behind `modOptions.releasecandidates` | Varies by version |
+
+Without a guard, `deepcopy(nil)` returns `nil`, and the very next line (e.g., `u.name = ...`) crashes the **entire tweakdefs script silently** — no error is shown, and **no units from the script will load**.
+
+**Idiomatic guard patterns:**
+```lua
+-- Pattern A: Single unit (skip if parent missing)
+local parent_id = "armsubk"
+local new_id = "my_new_sub"
+if UnitDefs[parent_id] and not UnitDefs[new_id] then
+    UnitDefs[new_id] = deepcopy(UnitDefs[parent_id])
+    local u = UnitDefs[new_id]
+    -- ... customize u ...
+end
+
+-- Pattern B: Data-driven loop with logging
+local units = {
+    { id = "armfast", parent = "armbanth" },
+    { id = "corfast", parent = "corjugg" },
+    { id = "legfast", parent = "legeheatraymech" },  -- may not exist!
+}
+for _, cfg in ipairs(units) do
+    if not UnitDefs[cfg.parent] then
+        Spring.Echo("[MyMod] Parent '" .. cfg.parent .. "' not found, skipping " .. cfg.id)
+    else
+        UnitDefs[cfg.id] = deepcopy(UnitDefs[cfg.parent])
+        local u = UnitDefs[cfg.id]
+        -- ... customize u ...
+    end
+end
+```
+
 ---
 
 ## 2. Unit Identity & Player Experience
@@ -180,6 +222,36 @@ u.weapons = {
 ```
 
 **Important:** Weapon slots must exist in the unit's script and model. If the unit script only implements `AimWeapon1/FireWeapon1`, a weapon placed in slot 2+ will never fire. When adding multiple weapons, clone from a parent unit whose script already supports the same number of weapon slots.
+
+### 4.3 Weapon Slot Constraints (Critical)
+Unit animation scripts (`.cob` or `.lua`) implement specific `AimWeaponN` / `FireWeaponN` functions for each weapon slot index. **If the script does not implement a slot, any weapon assigned to that slot will silently never fire — no error, just a dead weapon.**
+
+**Rule 1 — Replacing weapons is safe (same slot count):**
+When you replace `u.weapondefs` and `u.weapons` with entirely new tables, the new weapon inherits the parent's animation functions — as long as you use the **same slot indices**. This is the pattern used by the Nuke Tick mod:
+```lua
+-- Parent (armflea) has 1 weapon in slot [1].
+-- We REPLACE slot [1] with a nuke — the parent's AimWeapon1/FireWeapon1 drives it.
+u.weapondefs = {
+    nuke_tick = nuke_def,   -- replaces the original weapon entirely
+}
+u.weapons = {
+    [1] = { def = "NUKE_TICK" },  -- same slot index as the parent
+}
+```
+
+**Rule 2 — Adding extra weapon slots is NOT safe:**
+If the parent only supports 1 weapon slot, you **cannot** add a weapon to slot `[2]` and expect it to fire. You must clone from a parent whose script already supports the number of slots you need.
+
+**Rule 3 — Never arm a builder or support unit:**
+Units like `legnavyrezsub` (Resurrection Submarine) or `armacsub` (Construction Sub) have **zero weapon scripts**. No weapon will ever fire on these units, regardless of what you put in `weapondefs`.
+
+**Reference — Submarines by weapon slot count:**
+| Slots | Units |
+|---|---|
+| 0 | `armacsub`, `coracsub`, `legnavyrezsub`, `leganavyconsub` (builders) |
+| 1 | `armsub`, `corsub`, `legnavysub`, `armsubk`, `corssub`, `leganavybattlesub`, `leganavyheavysub` |
+| 2 | `armserp` (torpedo × 2, slot 2 slaved to slot 1) |
+| 3 | `armseadragon` (torpedo + nuke missile + alarm), `cordesolator` (torpedo + nuke missile + alarm) |
 
 ---
 
@@ -248,12 +320,14 @@ end
 
 ### For creating new units:
 1.  **Draft the Lua**: Clone a parent unit using `deepcopy`.
-2.  **Define Stats**: Set identity (`u.name`, `customparams`), movement, and combat parameters.
-3.  **Register**: Add to `MOD_ADDED_UNITS` for test-mode compatibility.
-4.  **Inject**: Add the unit to build menus procedurally.
-5.  **Encode**: Run `python3 encode_mod.py` to generate a Base64 string.
-6.  **Deploy**: In a lobby, use `!boss` and `!bset tweakdefs <BASE64_STRING>`.
-7.  **Debug**: If the unit doesn't appear, check `infolog.txt` for Lua syntax errors.
+2.  **Guard the parent**: Nil-check `UnitDefs[parent_id]` before cloning. Many unit categories are conditionally loaded — Legion, experimentals, scavengers, raptors (see Section 1.3).
+3.  **Verify weapon slots**: Check the parent's `weapons` table to confirm it supports the number of weapon slots you need. You cannot add slots beyond what the parent's animation script implements (see Section 4.3).
+4.  **Define Stats**: Set identity (`u.name`, `customparams`), movement, and combat parameters.
+5.  **Register**: Add to `MOD_ADDED_UNITS` for test-mode compatibility.
+6.  **Inject**: Add the unit to build menus procedurally.
+7.  **Encode**: Run `python3 encode_mod.py` to generate a Base64 string.
+8.  **Deploy**: In a lobby, use `!boss` and `!bset tweakdefs <BASE64_STRING>`.
+9.  **Debug**: If the unit doesn't appear, check `infolog.txt` for Lua syntax errors.
 
 ---
 

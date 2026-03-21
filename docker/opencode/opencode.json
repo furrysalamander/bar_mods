@@ -1,0 +1,33 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "llama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "llama-server (local)",
+      "options": {
+        "baseURL": "{env:LLAMA_API_URL}",
+        "apiKey": "{env:LLM_API_KEY}"
+      },
+      "models": {
+        "{env:LLAMA_MODEL_ID}": {
+          "name": "Local LLM",
+          "limit": {
+            "context": 262144,
+            "output": 65536
+          }
+        }
+      }
+    }
+  },
+  "model": "llama/{env:LLAMA_MODEL_ID}",
+  "snapshot": false,
+  "share": "disabled",
+  "instructions": ["AGENTS.md"],
+  "permission": "allow",
+  "tools": {
+    "bash": false
+  },
+  "watcher": {
+    "ignore": ["Beyond-All-Reason/**"]
+  }
+}

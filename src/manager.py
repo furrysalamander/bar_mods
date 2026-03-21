@@ -10,55 +10,6 @@ COLLECTIONS_FILE = "./collections.json"
 
 st.set_page_config(page_title="BAR Modpack Manager", layout="wide")
 
-def inject_custom_css():
-    st.markdown("""
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
-
-        html, body, [class*="css"] {
-            font-family: 'Outfit', sans-serif;
-        }
-
-        h1, h2, h3 {
-            background: -webkit-linear-gradient(45deg, #6A7CA0, #4F8CFF);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 800 !important;
-            letter-spacing: -0.5px;
-        }
-
-        .stButton > button {
-            background: linear-gradient(45deg, #4F8CFF, #6A7CA0) !important;
-            color: #F3F6FB !important;
-            border: none !important;
-            border-radius: 8px !important;
-            font-weight: 600 !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 4px 15px rgba(76, 140, 255, 0.12) !important;
-        }
-        .stButton > button:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 6px 20px rgba(76, 140, 255, 0.22) !important;
-            filter: brightness(1.04);
-            color: #F3F6FB !important;
-        }
-
-        .stAlert {
-            background: #23272F !important;
-            color: #A0A8B8 !important;
-            border-radius: 8px !important;
-            box-shadow: none !important;
-            border: 1px solid #2B2F38 !important;
-        }
-        .stAlert .stMarkdown {
-            background: #23272F !important;
-            color: #6A7CA0 !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-inject_custom_css()
-
 def load_collections():
     if os.path.exists(COLLECTIONS_FILE):
         try:
