@@ -12,3 +12,10 @@ __pycache__/
 Beyond-All-Reason/*
 !Beyond-All-Reason/.gitmodules
 !Beyond-All-Reason/.git
+
+# Secrets
+.env
+
+# Pre-built binaries (downloaded in CI)
+docker/opencode/opencode
+docker/opencode/opencode-*.tar.gz

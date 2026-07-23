@@ -20,11 +20,16 @@ services:
     env_file: .env
     environment:
       - OPENCODE_URL=http://opencode:4096
+      - HOST_MODS_DIR=${HOST_MODS_DIR:-${PWD}/mods}
+      - HOST_DATA_UNITS_DIR=${HOST_DATA_UNITS_DIR:-${PWD}/data/units}
+      - HOST_SANDBOX_DIR=${HOST_SANDBOX_DIR:-${PWD}/volumes}
     volumes:
       - ./mods:/app/mods
       - ./output:/app/output
       - ./collections.json:/app/collections.json
       - ./data/units:/app/data/units:ro
+      - ./volumes:/app/volumes
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       opencode:
         condition: service_healthy
@@ -80,6 +85,17 @@ services:
     restart: unless-stopped
     networks:
       - app-net
+
+  # Build-only service — not a running container.
+  # Run `docker compose build python-sandbox` to create the image
+  # used by ContainerManager for sandboxed Python execution.
+  python-sandbox:
+    build:
+      context: docker/python-sandbox
+      dockerfile: Dockerfile
+    image: bar-python-sandbox
+    profiles:
+      - build-only
 
 networks:
   app-net:
